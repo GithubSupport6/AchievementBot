@@ -72,16 +72,15 @@ def add_achievement(id, achievement):
 
 def get_all_achievements(userid):
     with Session(engine) as session:
-        user = select(User).where(User.id == userid)
-        s = session.query(Achievement).filter(user in Achievement.users).all()
+        user = session.query(User).filter(User.id == userid).first()
         session.commit()
-        return s
+        return user.achievements
 
 @bot.message_handler(commands=['getAchievements'])
 def add_handler(message):
     achievements = get_all_achievements(message.from_user.id)
     for achievement in achievements:
-        msg = "(" + str(achievement.userid) + "," + achievement.name + "," + achievement.description + ")"
+        msg = "(" + achievement.name + "," + achievement.description + ")"
         bot.send_message(message.from_user.id, msg)
 
 bot.polling(none_stop=True, interval=0)
