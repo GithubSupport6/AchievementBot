@@ -24,8 +24,7 @@ class Achievement(Base):
     description = Column(String)
     users = relationship('User', secondary=UserAchievement, back_populates="achievements")
 
-    def __init__(self,userid,name,description):
-       self.userid = userid    
+    def __init__(self,name,description):    
        self.name = name
        self.description = description 
 

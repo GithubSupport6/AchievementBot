@@ -8,12 +8,12 @@ from entities import User
 from entities import init_db
 
 bot = telebot.TeleBot('5562135400:AAHj8dPpvdIrmfwbps8aVZ3iGOmzpCjKyD0')
-admin_id = 869853516
+admin_id = [869853516,1799239576]
 engine = init_db()
 
 @bot.message_handler(commands=['add'])
 def add_handler(message):
-    if (message.from_user.id == admin_id):
+    if (message.from_user.id in admin_id):
         bot.send_message(message.from_user.id, "Введите название")
         bot.register_next_step_handler(message,get_name)
     else:
@@ -30,7 +30,6 @@ def get_description(message):
     global description
     description = message.text
     achievement = Achievement(
-        message.from_user.id,
         name,
         description
     )
@@ -38,13 +37,17 @@ def get_description(message):
     user = find_user(message.from_user.id)
     if (user == None):
         user = add_user(message.from_user.id)
-    add_achievement(user,achievement)
+
+    print(user.id)
+    add_achievement(user.id,achievement)
     bot.send_message(message.from_user.id, "Создано успешно")
    
 def find_user(id):
     with Session(engine) as session:
+        session.expire_on_commit = False
         user = session.query(User).filter(User.id == id).first()
         session.commit()
+        session.expunge(user)
         return user
         
 
@@ -57,10 +60,11 @@ def add_user(id):
         session.commit()
         return user
 
-def add_achievement(user, achievement):
+def add_achievement(id, achievement):
     with Session(engine) as session:
         session.expire_on_commit = False
-        user_for_achievement = session.query(User).filter(User.id == user.id).first()
+        session.add(achievement)
+        user_for_achievement = session.query(User).filter(User.id == id).first()
         user_for_achievement.achievements.append(achievement)
         session.add(user_for_achievement)
         session.commit()
